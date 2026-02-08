@@ -1,0 +1,361 @@
+part of '../cardyfie_add_fund_screen.dart';
+
+class CardyfieAddFundWidget extends StatelessWidget {
+  CardyfieAddFundWidget({Key? key, required this.buttonText}) : super(key: key);
+  final String buttonText;
+  final controller = Get.put(CardyfieAddFundController());
+  final walletController = Get.put(VirtualCardyfieCardController());
+
+  @override
+  Widget build(BuildContext context) {
+    return _bodyWidget(context);
+  }
+
+  _bodyWidget(BuildContext context) {
+    bool isTablet() {
+      return MediaQuery.of(context).size.shortestSide >= 600;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _inputFieldWidget(context),
+        _limitWidget(context),
+        verticalSpace(Dimensions.heightSize),
+        _walletDropDownWidget(context),
+        _customNumKeyBoardWidget(context),
+        verticalSpace(30),
+        _buttonWidget(context),
+      ],
+    );
+  }
+  // from currency come to user wallet
+
+  _inputFieldWidget(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(
+        right: Dimensions.marginSizeHorizontal * 0.5,
+        top: Dimensions.marginSizeVertical * 2,
+      ),
+      alignment: Alignment.topCenter,
+      height: Dimensions.inputBoxHeight,
+
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.45,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(width: Dimensions.widthSize * 0.7),
+                  Expanded(
+                    child: TextFormField(
+                      style: Get.isDarkMode
+                          ? CustomStyle.lightHeading2TextStyle.copyWith(
+                              color: CustomColor.primaryTextColor,
+                              fontSize: Dimensions.headingTextSize3 * 2,
+                            )
+                          : CustomStyle.darkHeading2TextStyle.copyWith(
+                              color: CustomColor.primaryDarkTextColor,
+                              fontSize: Dimensions.headingTextSize3 * 2,
+                            ),
+                      readOnly: true,
+                      controller: controller.amountTextController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+
+                      validator: (String? value) {
+                        if (value!.isEmpty) {
+                          return Strings.pleaseFillOutTheField;
+                        } else {
+                          return null;
+                        }
+                      },
+                      decoration: InputDecoration(
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        hintText: '0.0',
+                        hintStyle: CustomStyle.darkHeading2TextStyle.copyWith(
+                          color: Get.isDarkMode
+                              ? CustomColor.primaryTextColor.withValues(
+                                  alpha: 0.7,
+                                )
+                              : CustomColor.primaryDarkTextColor.withValues(
+                                  alpha: 0.7,
+                                ),
+                          fontSize: Dimensions.headingTextSize3 * 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Dimensions.widthSize * 0.5),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(width: Dimensions.widthSize * 0.7),
+          _currencyDropDownWidget(context),
+        ],
+      ),
+    );
+  }
+
+  _customNumKeyBoardWidget(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: Dimensions.marginSizeVertical * 0.3),
+      child: GridView.count(
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 3,
+        crossAxisSpacing: 10.0,
+        mainAxisSpacing: 10.0,
+        childAspectRatio: 3 / 1.7,
+        shrinkWrap: true,
+        children: List.generate(controller.keyboardItemList.length, (index) {
+          return controller.inputItem(index);
+        }),
+      ),
+    );
+  }
+
+  _buttonWidget(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(
+        left: Dimensions.marginSizeHorizontal * 0.8,
+        right: Dimensions.marginSizeHorizontal * 0.8,
+        top: Platform.isAndroid ? Dimensions.marginSizeVertical * 1.8 : 0.0,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: PrimaryButton(
+              title: buttonText,
+              onPressed: () {
+                Get.toNamed(Routes.addFundCardyfiePreviewScreen);
+              },
+              borderColor: CustomColor.primaryLightColor,
+              buttonColor: CustomColor.primaryLightColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _currencyDropDownWidget(BuildContext context) {
+    return Container(
+      height: Dimensions.buttonHeight * 0.65,
+      alignment: Alignment.center,
+      margin: EdgeInsets.symmetric(
+        horizontal: Dimensions.marginSizeHorizontal * 0.1,
+        vertical: Dimensions.marginSizeVertical * 0.2,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(Dimensions.radius * 2),
+        color: Get.isDarkMode
+            ? CustomColor.primaryBGDarkColor
+            : CustomColor.primaryBGLightColor,
+      ),
+      child: Row(
+        children: [
+          horizontalSpace(Dimensions.widthSize),
+          TitleHeading3Widget(
+            // text: controller
+            //     .cardyfieCardModel
+            //     .data
+            //     .supportedCurrency
+            //     .first
+            //     .currencyCode,
+            text: 'USD',
+            color: Get.isDarkMode
+                ? CustomColor.primaryDarkTextColor
+                : CustomColor.primaryTextColor,
+            fontWeight: FontWeight.w500,
+          ),
+          horizontalSpace(Dimensions.widthSize),
+        ],
+      ),
+    );
+  }
+
+  _walletDropDownWidget(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSize),
+      child: Column(
+        children: [
+          Obx(
+            () => Container(
+              margin: EdgeInsets.only(bottom: Dimensions.heightSize),
+              child: CustomDropDown<UserWallet>(
+                dropDownHeight: Dimensions.inputBoxHeight * 0.75,
+                items: walletController.walletsList,
+                customBorderRadius: BorderRadius.circular(30),
+                hint: walletController.selectMainWallet.value!.title,
+                onChanged: (value) {
+                  walletController.selectMainWallet.value = value!;
+                  walletController.fromCurrency.value = value.currency.code
+                      .toString();
+                  print(walletController.fromCurrency.value);
+                },
+
+                padding: EdgeInsets.only(
+                  left: Dimensions.paddingSize * 0.5,
+                  right: Dimensions.paddingSize * 0.4,
+                ),
+                titleTextColor: Get.isDarkMode
+                    ? CustomColor.whiteColor
+                    : CustomColor.blackColor,
+                borderEnable: true,
+                dropDownFieldColor: Colors.transparent,
+                dropDownIconColor: CustomColor.blackColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _limitWidget(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: mainCenter,
+          children: [
+            TitleHeading5Widget(
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+              text: Strings.limit,
+            ),
+            horizontalSpace(Dimensions.widthSize),
+            TitleHeading5Widget(
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+              text:
+                  "${walletController.cardyfieCardModel.data.cardCharge.minLimit} - ${walletController.cardyfieCardModel.data.cardCharge.maxLimit} ${walletController.fromCurrency.value}",
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: mainCenter,
+          children: [
+            TitleHeading5Widget(
+              text: Strings.exchangeRate,
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+            ),
+            horizontalSpace(Dimensions.widthSize),
+            TitleHeading5Widget(
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+              text:
+                  "1 ${walletController.fromCurrency.value} = 1.00 ${walletController.fromCurrency.value}",
+            ),
+          ],
+        ),
+
+        Row(
+          mainAxisAlignment: mainCenter,
+          children: [
+            TitleHeading5Widget(
+              text: Strings.remainingDailyLimit,
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+            ),
+            horizontalSpace(Dimensions.widthSize),
+            TitleHeading5Widget(
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+              text:
+                  ": ${walletController.remainingController.remainingDailyLimit.value.toStringAsFixed(2)} ${walletController.fromCurrency.value}",
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: mainCenter,
+          children: [
+            TitleHeading5Widget(
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+              text: Strings.remainingMonthlyLimit,
+            ),
+            horizontalSpace(Dimensions.widthSize),
+            TitleHeading5Widget(
+              color: CustomColor.primaryLightColor.withValues(alpha: 0.6),
+              text:
+                  ": ${walletController.remainingController.remainingMonthLyLimit.value.toStringAsFixed(2)} ${walletController.fromCurrency.value}",
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+Widget limitWidget({required fee, required limit}) {
+  return Container(
+    margin: EdgeInsets.symmetric(
+      vertical: Dimensions.marginSizeVertical * 0.2,
+      horizontal: Dimensions.marginSizeHorizontal,
+    ),
+    child: Column(
+      children: [
+        Row(
+          mainAxisAlignment: mainCenter,
+          children: [
+            CustomTitleHeadingWidget(
+              text: Strings.transferFee,
+              textAlign: TextAlign.left,
+              style: GoogleFonts.inter(
+                fontSize: Dimensions.headingTextSize5,
+                fontWeight: FontWeight.w500,
+                color: Get.isDarkMode
+                    ? CustomColor.primaryTextColor
+                    : CustomColor.primaryDarkTextColor,
+              ),
+            ),
+            Text(
+              " : $fee ",
+              textAlign: TextAlign.left,
+              style: GoogleFonts.inter(
+                fontSize: Dimensions.headingTextSize5,
+                fontWeight: FontWeight.w500,
+                color: Get.isDarkMode
+                    ? CustomColor.primaryTextColor
+                    : CustomColor.primaryDarkTextColor,
+              ),
+            ),
+          ],
+        ),
+        verticalSpace(Dimensions.heightSize * 0.2),
+        Row(
+          mainAxisAlignment: mainCenter,
+          children: [
+            CustomTitleHeadingWidget(
+              text: Strings.limit,
+              textAlign: TextAlign.left,
+              style: GoogleFonts.inter(
+                fontSize: Dimensions.headingTextSize5,
+                fontWeight: FontWeight.w500,
+                color: Get.isDarkMode
+                    ? CustomColor.primaryTextColor
+                    : CustomColor.primaryDarkTextColor,
+              ),
+            ),
+            Text(
+              " : $limit",
+              textAlign: TextAlign.left,
+              style: GoogleFonts.inter(
+                fontSize: Dimensions.headingTextSize5,
+                fontWeight: FontWeight.w500,
+                color: Get.isDarkMode
+                    ? CustomColor.primaryTextColor
+                    : CustomColor.primaryDarkTextColor,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
