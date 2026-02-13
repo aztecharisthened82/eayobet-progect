@@ -1,116 +1,52 @@
-import 'package:flutter/foundation.dart';
-import 'package:get_storage/get_storage.dart';
-import '/utils/basic_screen_import.dart';
-import 'package:flutter/services.dart';
-import 'backend/utils/maintanance_dialoge.dart';
-import 'backend/utils/network_check/dependency_injection.dart';
-import 'controller/app_settings/app_settings_controller.dart';
-import 'language/language_controller.dart';
-import 'utils/theme.dart';
-import 'package:pusher_beams/pusher_beams.dart';
-import 'backend/services/notification_service.dart';
+import 'package:flutter/material.dart';
 
-void main() async {
-  // Ensure Widgets Binding
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-
-    DeviceOrientation.portraitDown,
-  ]);
-
-  await GetStorage.init();
-  InternetCheckDependencyInjection.init();
-
-  Get.put(Themes());
-
-  // Set System UI Style based on Theme
-  final bool isDarkMode = Get.isDarkMode; // Ensure it's accessible
-  SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      systemNavigationBarColor: isDarkMode
-          ? CustomColor.whiteColor
-          : CustomColor.primaryDarkScaffoldBackgroundColor,
-      statusBarColor: isDarkMode
-          ? CustomColor.whiteColor
-          : CustomColor.primaryDarkScaffoldBackgroundColor,
-      statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-    ),
-  );
-
-  // Run the main app
-  runApp(const MyApp());
+void main() {
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    initPusherBeams();
-    super.initState();
-  }
-
-  initPusherBeams() async {
-    if (!kIsWeb) {
-      await PusherBeams.instance
-          .onMessageReceivedInTheForeground(_onMessageReceivedInTheForeground);
-    }
-    await _checkForInitialMessage();
-  }
-
-  Future<void> _checkForInitialMessage() async {
-    final initialMessage = await PusherBeams.instance.getInitialMessage();
-    if (initialMessage != null) {}
-  }
-
-  void _onMessageReceivedInTheForeground(Map<Object?, Object?> data) {
-    NotificationService.showLocalNotificationPusher(
-      title: data["title"].toString(),
-      body: data["body"].toString(),
-    );
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      useInheritedMediaQuery: true,
-      designSize: const Size(375, 812),
-      builder: (_, child) => GetMaterialApp(
-        title: Strings.appName,
-        debugShowCheckedModeBanner: false,
-        theme: Themes.light,
-        darkTheme: Themes.dark,
-        themeMode: Themes().theme,
-        navigatorKey: Get.key,
-        initialRoute: Routes.splashScreen,
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: SplashScreen(),
+    );
+  }
+}
 
-        getPages: Routes.list,
-        initialBinding: BindingsBuilder(() {
-          Get.put(LanguageController());
-          Get.put(AppSettingsController(), permanent: true);
-          Get.put(SystemMaintenanceController());
-        }),
-        builder: (context, widget) {
-          ScreenUtil.init(context);
-          return Obx(
-            () => MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-              child: Directionality(
-                textDirection: Get.find<LanguageController>().isLoading
-                    ? TextDirection.ltr
-                    : Get.find<LanguageController>().languageDirection,
-                child: widget!,
-              ),
-            ),
-          );
-        },
+class SplashScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Future.delayed(Duration(seconds: 3), () {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
+    });
+    return Scaffold(
+      backgroundColor: Colors.blue,
+      body: Center(
+        child: Text(
+          'Splash Screen',
+          style: TextStyle(color: Colors.white, fontSize: 24),
+        ),
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Home Screen'),
+      ),
+      body: Center(
+        child: Text(
+          'Welcome to Home Screen!',
+          style: TextStyle(fontSize: 24),
+        ),
       ),
     );
   }
